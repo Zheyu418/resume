@@ -1,0 +1,409 @@
+---
+title: "Data Visualization Portfolio"
+author: "Zheyu Pei"
+
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    code-overflow: wrap
+    css: styles.css
+    toc: true
+    toc-depth: 2
+    toc-title: "Contents"
+    theme: cosmo        
+editor: visual
+date: now
+execute:
+  error: true
+  warning: false
+  message: false
+---
+
+## 
+
+## Introduction
+
+During my undergraduate coursework at Harvard, I have studied data visualization in R, focusing on techniques to present data clearly and effectively. As a brief demonstration of my skills, this portfolio includes three examples of my work:
+
+-   The first visualization explores the relationship between a movie’s critical acclaim, measured by its Metascore, and its U.S. box office performance.
+
+-   The second visualization showcases the geographic distribution of median household income across the United States.
+
+-   The third visualization highlights global birth rate trends over time.
+
+### 
+
+## Visualization 1
+
+```{r}
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(here)
+
+# movie data
+movies <- read_csv(file = here("movies.csv"))
+# define thresholds
+high_metascore <- 75
+high_box_office <- 500
+
+# the static ggplot
+plot <- movies |>
+  ggplot(aes(x = metascore, y = box_office, 
+             text = paste("Title:", title, 
+                          "<br>Metascore:", metascore, 
+                          "<br>Box Office: $", box_office, "M"))) +
+  # high-performance region - move this below points by adding it first
+  geom_rect(
+    aes(xmin = high_metascore, xmax = 100,
+        ymin = high_box_office, ymax = max(movies$box_office, na.rm = TRUE) + 50),
+    inherit.aes = FALSE,
+    fill = "#f7cac9", alpha = 0.2, color = "#c94c4c"
+  ) +
+  # static data points
+  geom_point(color = "#80ced6", alpha = 0.7, size = 1.2) +
+  # high performing points
+  geom_point(data = subset(movies, metascore > high_metascore & box_office > high_box_office),
+             color = "#f7786b", size = 1.5) +
+  labs(
+    title = "Critic Scores and USA Box Office Returns",
+    subtitle = "Highlighting movies with Metascore > 75 and Box Office > $500M",
+    x = "Metascore (Critic Score)",
+    y = "Box Office Returns (Millions of USD)",
+    caption = "Data represents movies released between 2000 and 2021 in English, with at least $500,000 in box office earnings."
+  ) +
+  # theme
+  theme_minimal(base_size = 40) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15, color = "#2F4F4F", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, color = "#556B2F", margin = margin(b = 20), hjust = 0.5),
+    axis.title = element_text(face = "bold", size = 10),
+    axis.text = element_text(size = 10, color = "#2F4F4F"),
+    panel.grid.major = element_line(color = "#E0E0E0", size = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 20, r = 25, b = 20, l = 25),  # Increased margins
+    plot.caption = element_text(size = 10, hjust = 0, margin = 10)
+  )
+
+# make it interactive
+interactive_plot <- ggplotly(plot, tooltip = "text") %>%
+  layout(
+    title = list(
+      text = paste0(
+        "<b>Critic Scores and USA Box Office Returns</b><br>",
+        "<sup>Highlighting movies with Metascore > 75 and Box Office > $500M</sup>"
+      ),
+      font = list(size = 15, color = "#2F4F4F"),
+      x = 0.5,
+      xanchor = "center"
+    ),
+    annotations = list(
+      list(
+        text = "Data represents movies released between 2000 and 2021 in English, with at least $500,000 in box office earnings.",
+        x = 0.5,
+        y = -0.1,
+        showarrow = FALSE,
+        xref = "paper",
+        yref = "paper",
+        font = list(size = 8, color = "#2F4F4F"),
+        align = "center"
+      )
+    )
+  )
+
+interactive_plot
+
+```
+
+```{r}
+library(DT)
+library(crosstalk)
+library(ggplot2)
+library(plotly)
+
+# share table data witht the plot
+shared_data <- SharedData$new(movies)
+
+interactive_plot <- shared_data |>
+  ggplot(aes(x = metascore, y = box_office, 
+             text = paste("Title:", title, 
+                          "<br>Metascore:", metascore, 
+                          "<br>Box Office: $", box_office, "M"))) +
+  # high performance area
+  geom_rect(
+    aes(xmin = high_metascore, xmax = 100,
+        ymin = high_box_office, ymax = max(movies$box_office, na.rm = TRUE) + 50),
+    inherit.aes = FALSE,
+    fill = "#f7cac9", alpha = 0.2, color = "#c94c4c"
+  ) +
+  geom_point(color = "#80ced6", alpha = 0.7, size = 1.2) +
+  geom_point(data = subset(movies, metascore > high_metascore & box_office > high_box_office),
+             color = "#f7786b", size = 1.5) +
+  labs(
+    title = "Critic Scores and USA Box Office Returns",
+    subtitle = "Highlighting movies with Metascore > 75 and Box Office > $500M",
+    x = "Metascore (Critic Score)",
+    y = "Box Office Returns (Millions of USD)",
+    caption = "Data represents movies released between 2000 and 2021 in English, with at least $500,000 in box office earnings."
+  ) +
+  theme_minimal(base_size = 40) +
+  theme(
+    plot.title = element_text(face = "bold", size = 10, color = "#2F4F4F", hjust = 0.5),
+    axis.title = element_text(face = "bold", size = 8),  # Axis label size
+    axis.text = element_text(size = 8, color = "#2F4F4F"),  # Axis tick size
+    panel.grid.major = element_line(color = "#E0E0E0", size = 0.5),  # Subtle grid lines
+    panel.grid.minor = element_blank(),  # Remove minor grid lines
+    plot.margin = margin(t = 20, r = 25, b = 20, l = 25),  # Margins
+  )
+
+interactive_plot <- ggplotly(interactive_plot, tooltip = "text") %>%
+  highlight("plotly_selected")
+
+# interactive table
+interactive_table <- datatable(
+  shared_data,
+  extensions = c("Scroller"),
+  options = list(scrollY = 300, paging = FALSE),
+  rownames = FALSE
+)
+
+bscols(widths = c(8, 4), interactive_plot, interactive_table)
+
+```
+
+The relationship between a movie's critical acclaim and box office performance is crucial, as filmmakers often choose between prioritizing praise or profitability. This visualization plots Metascore ratings against U.S. box office returns to explore their correlation.
+
+The shaded rectangle highlights high-performing movies with both high Metascores and box office revenues, many of which are commercial blockbusters. Hovering over data points reveals details such as the movie's title, Metascore, and revenue. An interactive table linked to the plot allows users to search for specific movies, highlighting corresponding points on the plot.
+
+Higher Metascores do not consistently lead to higher box office earnings. Many outliers exist, and movies scoring in the 70-85 Metascore range are often more profitable. This range might represent a balance point, suggesting that these movies manage to appeal to both critics and mass audiences. Movies with exceptionally high Metascores may cater more to critics and niche audiences. Striking a balance between critical praise and audience enjoyment could therefore be key to maximizing commercial success.
+
+## Visualization 2
+
+```{r}
+
+library(here)
+library(socviz)
+library(tidyverse)
+library(viridisLite)
+library(plotly)
+library(maps)
+library(leaflet)
+
+
+
+
+# theme map
+theme_map <- function(base_size = 13, base_family = "") {
+  theme_minimal(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      axis.line = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      panel.background = element_blank(),
+      panel.spacing = unit(0, "lines"),
+      legend.justification = c(0, 0),
+      legend.position = c(0, 0),
+      legend.key.height = unit(0.3, "cm"),
+      legend.key.width = unit(0.8, "cm"),
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 10, face = "bold") 
+    )
+}
+
+# load data
+data("county_map")
+data("county_data")
+
+
+
+# join
+county_map_data = left_join(county_map, county_data, by = "id")
+
+
+
+# static map
+static_map <- ggplot(data = county_map_data, 
+       mapping = aes(
+         x = long, 
+         y = lat, 
+         group = group, 
+         fill = hh_income,
+         text = paste("County:", name, "<br>Median Income:", scales::dollar(hh_income))  # Add text for tooltip
+       )) +
+  geom_polygon(color = "darkgrey", linewidth = 0.1) +  # Map polygons with borders
+  coord_fixed() +  # Preserve aspect ratio
+  scale_fill_gradient(
+    name = "Median Household Income\n(2009-2013)",
+    low = "#e0f7fa",
+    high = "#006064",
+    na.value = "grey", # color gradient
+    labels = scales::label_dollar(scale = 1e-3, suffix = "k")
+  ) +
+  labs(
+    title = "County-Level Median Household Income in the U.S.",
+    subtitle = "Data from 2009-2013",
+    caption = "Source: US Census Bureau, Centers for Disease Control"
+  ) +
+  theme_map(base_size = 14)
+
+# interactive map
+interactive_map <- ggplotly(static_map, tooltip = "text") |>
+  layout(
+    autosize = TRUE,
+    title = list(
+      text = "<b>County-Level Median Household Income in the U.S.</b><br><sup>Data from 2009-2013</sup>",
+      font = list(size = 16),
+      x = 0.5,
+      xanchor = "center"
+    ),
+    margin = list(l = 10, r = 10, t = 50, b = 50)
+  )
+
+
+
+# display the interactive map
+interactive_map
+
+
+```
+
+Income inequality is a continuing unresolved issue in the U.S., and understanding its geographic distribution is essential to address disparities. This map visualizes county-level median household income across the United States from 2009 to 2013. Counties are shaded according to their median income levels, with darker shades representing higher incomes and lighter shades indicating lower incomes. The legend on the right helps readers interpret the data.
+
+One striking feature is the concentration of wealth in urban areas, particularly along the East and West Coasts. Counties near metropolitan regions such as the Bay Area and D.C., stand out with significantly higher incomes. Conversely, rural counties in the South and Midwest often display lighter shades. This visualization highlights the urban-rural income divide, emphasizing the need to target economic growth in underprivileged regions.
+
+## Visualization 3
+
+```{r, echo=TRUE}
+library(WDI)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(gganimate)
+library(gifski)
+
+```
+
+```{r, echo=TRUE}
+# birth rate data from WDI
+birth_rate_data <- WDI(
+  indicator = "SP.DYN.CBRT.IN",
+  start = 1980,
+  end = 2021,
+  extra = TRUE
+)
+
+birth_rate_clean <- birth_rate_data %>%
+  rename(
+    birth_rate = SP.DYN.CBRT.IN,
+    continent = region
+  ) %>%
+  filter(
+    !is.na(birth_rate) & 
+    !is.na(continent) &  # remove rows with NA, delete 3 regions
+    !continent %in% c("Aggregates", "")
+  )
+
+
+
+
+# calculate global and regional averages
+birth_rate_summary <- birth_rate_clean %>%
+  group_by(continent, year) %>%
+  summarise(avg_birth_rate = mean(birth_rate), .groups = "drop")
+
+# calculate global average
+global_avg <- birth_rate_clean %>%
+  group_by(year) %>%
+  summarise(global_birth_rate = mean(birth_rate), .groups = "drop")
+
+# merge the newly calculated global value together
+birth_rate_summary <- birth_rate_summary %>%
+  left_join(global_avg, by = "year")
+
+# define the lable color
+continent_colors <- c(
+  "East Asia & Pacific" = "#E41A1C",
+  "Europe & Central Asia" = "#377EB8",
+  "Latin America & Caribbean" = "#4DAF4A",
+  "Middle East & North Africa" = "#984EA3",
+  "North America" = "#FF7F00",
+  "South Asia" = "#FFFF33",
+  "Sub-Saharan Africa" = "#A65628",
+  "Global Average" = "black"
+)
+
+
+```
+
+```{r, echo=TRUE}
+# creating animation
+animated_plot <- ggplot(birth_rate_summary, aes(x = year)) +
+  geom_line(aes(y = avg_birth_rate, color = continent), size = 1) +
+  geom_line(aes(y = global_birth_rate, color = "Global Average"), 
+            size = 1.5, linetype = "dashed") +
+  geom_point(aes(y = avg_birth_rate, color = continent), size = 3, alpha = 0.8) +
+  geom_point(aes(y = global_birth_rate, color = "Global Average"), 
+             size = 3, alpha = 0.8) +
+  geom_text(
+    aes(y = avg_birth_rate, label = round(avg_birth_rate, 1), color = continent),
+    vjust = -1.5,
+    size = 3,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    aes(y = global_birth_rate, label = round(global_birth_rate, 1)),
+    color = "black",
+    vjust = -1.5,
+    size = 3,
+    show.legend = FALSE
+  ) +
+  # add vertilines of important historical events
+  geom_vline(xintercept = c(1990, 2000, 2015), linetype = "dotted", color = "grey", size = 0.8) +
+  annotate("text", x = 1990, y = 40, label = "1990: UN Millennium Goals", color = "grey30", angle = 90, hjust = 1) +
+  annotate("text", x = 2000, y = 40, label = "2000: Health Legislation", color = "grey30", angle = 90, hjust = 1) +
+  annotate("text", x = 2015, y = 40, label = "2015: SDGs Introduced", color = "grey30", angle = 90, hjust = 1) +
+  labs(
+    title = "Global and Continental Trends in Birth Rates: 1980 - 2020",
+    subtitle = "Birth rates are measured as live births per 1,000 people.",
+    x = "Year",
+    y = "Birth Rate",
+    color = "Legend"
+  ) +
+  # theme
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 10),
+    legend.key.width = unit(0.8, "cm"), 
+    legend.key.height = unit(0.4, "cm"),
+    plot.margin = margin(10, 5, 10, 5),
+    panel.grid.major = element_line(color = "#E0E0E0"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_color_manual(values = continent_colors) +
+  scale_y_continuous(labels = scales::label_number(suffix = " births")) +
+  transition_reveal(year)
+
+# display
+animate(animated_plot, nframes = 100, fps = 90, renderer = gifski_renderer())
+
+```
+
+The third visualization tracks global and regional trends in birth rates from 1980 to 2020, measured as live births per 1,000 people. Each colored line represents a region, while the black dashed line shows the global average. Key historical policies, such as the UN Millennium Goals (1990), the Health Policy Shift in the US (2000), and the Sustainable Development Goals (2015), are marked on the timeline for context.
+
+The consistent decline in birth rates across all regions reflects broader socioeconomic shifts, including increased access to education, economic development, and outbreak of wars. For example, the Great Recession (2008) corresponds to sharper declines in birth rates in developed regions, demonstrating the impact of economic instability on fertility. Additionally, family planning policies, such as China's One-Child Policy (1979–2015), illustrate how governance shapes demographic patterns. The convergence of global birth rates highlights a narrowing fertility gap that probably driven by urbanization and women’s labor force participation, though South Asia and Sub-Saharan Africa continue to maintain the highest fertility rates today.
+
+<footer style="text-align: center; font-size: 0.9em; color: #7f8c8d; margin-top: 20px;">
+
+2024 Fall \| Zheyu Pei \| Data Visualization Portfolio \| SOCIOL 1256
+
+</footer>
