@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Page</title>
+    <link rel="stylesheet" href="style.css">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+
+#header {
+    background-color: indianred;
+    background-image: url("image/Contactme.jpeg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 420px;
+    padding: 20px;
+    text-align: center;
+    color: ivory;
+    font-family: 'Caveat', cursive;
+}       
+
+#header h1 {
+    margin: 0;
+}
+
+#content {
+    background-color: whitesmoke;
+    height: auto;
+    padding: 20px;
+    text-align: justify;
+    line-height: 1.5;
+}
+
+#form {
+    float: left;
+    width: 80%;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.form-row {
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.main-label {
+    width: 30%;
+    float: left;
+    margin-top: 10px;
+}
+
+input[type="text"],
+textarea {
+    width: 65%;
+    padding: 8px;
+}
+
+textarea {
+    height: 100px;
+}
+
+button {
+    padding: 10px 20px;
+
+}
+
+#submit-btn {
+    background-color: indianred;
+    color: white;
+    border: none;
+}
+
+</style>
+</head>
+<body>
+
+<div id="header">
+    <h1>Daily Sociology</h1>
+    <h2>Contact Page</h2>
+</div>
+
+<div id="content">
+
+    <form action="Confirmation.html">
+        <div class="form-row">
+            <label for="name" class="main-label">Your Name:</label>
+            <input id="name" type="text" placeholder="Please enter your name" required>
+        </div>
+
+        <div class="form-row">
+            <label for="phone_number" class="main-label">Phone Number:</label>
+            <input id="phone_number" type="text" placeholder="Please enter your phone number" required>
+        </div>
+
+        <div class="form-row">
+            <label for="email" class="main-label">Email:</label>
+            <input id="email" type="text" placeholder="Please enter your email" required>
+        </div>
+
+        <div class="form-row">
+            <label for="explain" class="main-label">Why you contact</label>
+            <textarea id="explain" placeholder="Please briefly type the reason of contact" required></textarea>
+        </div>
+
+        <div class="form-row">
+            <label class="main-label">Current USC student</label>
+            <label for="usc_yes"><input id="usc_yes" type="radio" name="usc" value="yes" required>Yes</label>
+            <label for="usc_no"><input id="usc_no" type="radio" name="usc" value="no" required>No</label>
+        </div>
+
+        <div class="form-row">
+            <button id="submit-btn" type="submit">Submit</button>
+            <button type="reset">Reset</button>
+        </div>
+    </form>
+</div>
+
+
+</body>
+</html>
